@@ -1,14 +1,13 @@
-name: Testar e publicar Puzzle Studio
+name: Testar Puzzle Studio
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: pages
+  group: puzzle-tests-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   test:
@@ -20,17 +19,3 @@ jobs:
           node-version: '22'
       - run: npm test
       - run: npm run check
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - id: deployment
-        uses: actions/deploy-pages@v4
