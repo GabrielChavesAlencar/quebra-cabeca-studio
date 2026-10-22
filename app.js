@@ -3,6 +3,7 @@ import {
   hashSeed, shuffledIds, isBorderPiece, canPlace, rotatePiece, targetFor,
   progress, formatTime, getSaveKey, validateSavedState
 } from './logic.js';
+import { renderPieceSlots } from './slot-grid.js';
 
 const $ = (selector) => document.querySelector(selector);
 const images = {
@@ -37,6 +38,11 @@ let winShown = false;
 let trayPage = 0;
 const TRAY_PAGE_SIZE = 60;
 let zoom = 1;
+// As cavidades são desenhadas uma única vez com o MESMO Path2D das peças.
+// Não recalcular os 1.000 contornos em cada movimento do mouse.
+const slotCache = document.createElement('canvas');
+slotCache.width = W; slotCache.height = H;
+const slotContext = slotCache.getContext('2d');
 const solvedCache = document.createElement('canvas');
 solvedCache.width = W; solvedCache.height = H;
 const solvedContext = solvedCache.getContext('2d');
@@ -153,12 +159,9 @@ function redrawBoard() {
   if (guide) {
     ctx.save(); ctx.globalAlpha = 0.20; ctx.drawImage(image, 0, 0, W, H); ctx.restore();
   }
-  ctx.strokeStyle = 'rgba(217,218,226,.13)';
-  ctx.lineWidth = 0.8;
-  ctx.beginPath();
-  for (let col = 1; col < grid().cols; col++) { let x = col * pieceWidth(); ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-  for (let row = 1; row < grid().rows; row++) { let y = row * pieceHeight(); ctx.moveTo(0, y); ctx.lineTo(W, y); }
-  ctx.stroke();
+  // A grade retangular antiga foi substituída por cavidades com o formato
+  // verdadeiro de cada peça (curvas, saliências e recessos correspondentes).
+  ctx.drawImage(slotCache, 0, 0);
   ctx.drawImage(solvedCache, 0, 0);
   const loose = pieces.filter((p) => p.state === 'board' && !p.dragging);
   for (const piece of loose) drawPiece(ctx, piece, piece.x, piece.y);
@@ -476,6 +479,8 @@ async function loadGame(imageId = currentImage, chosenDifficulty = difficulty) {
       (saved ? hashSeed(`${currentImage}:${grid().count}`) : Math.floor(Math.random() * 4294967296));
     pieces = generatePieces(grid().cols, grid().rows, puzzleSeed);
     for (const p of pieces) p.path = createPath(p);
+    // Um novo desenho de encaixes é preparado apenas quando a grade muda.
+    renderPieceSlots(slotContext, pieces, grid().cols, grid().rows, W, H);
     trayPage = 0;
     if (saved) {
           for (let i = 0; i < pieces.length; i++) {
