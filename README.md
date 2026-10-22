@@ -9,6 +9,7 @@ Um quebra-cabeça de encaixar peças, feito para jogar **direto no navegador**, 
 - **Quatro ilustrações** incluídas: montanhas, praia, cidade e espaço.
 - **Suas próprias fotos** (JPG, PNG e WEBP, até 12 MB), por seleção ou arrastar e soltar; imagens ajustadas automaticamente. Fotos diferentes mantêm progresso separado.
 - **Arrastar e soltar** no PC e no celular; também é possível selecionar uma peça e tocar no tabuleiro.
+- **Duplo clique** numa peça solta no tabuleiro para devolvê-la à bandeja automaticamente, revelando a página correta. Peças já encaixadas permanecem fixas. Também funciona com dois toques rápidos no tabuleiro em dispositivos com ponteiro sensível ao toque.
 - Giro de 90° pelo botão direito ou tecla R (botão para celular); só encaixa quando a peça estiver corretamente orientada. Encaixe magnético próximo da posição correta; peças encaixadas ficam fixas e as demais podem ser reorganizadas.
 - Filtros de peças de borda, centro e todas as peças; bandeja com páginas de 60 peças e zoom de 100 a 400% para puzzles grandes.
 - Imagem original, dicas, guia visual opcional e modo tela cheia.
