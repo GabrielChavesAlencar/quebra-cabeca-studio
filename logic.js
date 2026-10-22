@@ -8,6 +8,9 @@ export const DIFFICULTIES = Object.freeze([
   { label: 'Avançado', cols: 12, rows: 8, count: 96 },
   { label: 'Especialista', cols: 15, rows: 10, count: 150 },
   { label: 'Mestre', cols: 20, rows: 15, count: 300 },
+  { label: 'Lenda', cols: 25, rows: 20, count: 500 },
+  { label: 'Épico', cols: 30, rows: 25, count: 750 },
+  { label: 'Insano', cols: 40, rows: 25, count: 1000 },
 ]);
 
 export function hashSeed(text) {
@@ -29,6 +32,27 @@ export function randomFromSeed(seed) {
   };
 }
 
+export const ROTATIONS = Object.freeze([0, 90, 180, 270]);
+
+export function rotatePiece(piece, step = 1) {
+  if (piece.state === 'solved') return piece.rotation;
+  piece.rotation = (((piece.rotation || 0) + step * 90) % 360 + 360) % 360;
+  return piece.rotation;
+}
+
+export function canPlace(piece, x, y, cols, rows, width = BOARD_WIDTH, height = BOARD_HEIGHT) {
+  return (piece.rotation || 0) === 0 && canSnap(piece, x, y, cols, rows, width, height);
+}
+
+function randomJoint(random) {
+  return {
+    style: Math.floor(random() * 4),
+    center: +(0.43 + random() * 0.14).toFixed(3),
+    width: +(0.24 + random() * 0.11).toFixed(3),
+    depth: +(0.73 + random() * 0.40).toFixed(3)
+  };
+}
+
 export function generatePieces(cols, rows, seed = 1) {
   if (!Number.isInteger(cols) || !Number.isInteger(rows) || cols < 2 || rows < 2) {
     throw new Error('A grade precisa ter pelo menos 2 colunas e 2 linhas.');
@@ -45,7 +69,15 @@ export function generatePieces(cols, rows, seed = 1) {
         bottom: row === rows - 1 ? 0 : rand() < 0.5 ? 1 : -1,
         left: before ? -before.edges.right : 0,
       };
-      pieces.push({ id: row * cols + col, row, col, edges, state: 'tray', x: null, y: null });
+      // Um único perfil descreve cada costura e é compartilhado pelas duas peças vizinhas.
+      const joints = {
+        top: above ? above.joints.bottom : null,
+        right: col === cols - 1 ? null : randomJoint(rand),
+        bottom: row === rows - 1 ? null : randomJoint(rand),
+        left: before ? before.joints.right : null,
+      };
+      pieces.push({ id: row * cols + col, row, col, edges, joints,
+        state: 'tray', x: null, y: null, rotation: Math.floor(rand() * 4) * 90 });
     }
   }
   return pieces;
@@ -73,8 +105,8 @@ export function canSnap(piece, x, y, cols, rows, width = BOARD_WIDTH, height = B
   const target = targetFor(piece, cols, rows, width, height);
   const cellW = width / cols;
   const cellH = height / rows;
-  const rx = Math.max(11, cellW * 0.39);
-  const ry = Math.max(11, cellH * 0.39);
+  const rx = Math.max(5, cellW * 0.39);
+  const ry = Math.max(5, cellH * 0.39);
   return ((x - target.x) / rx) ** 2 + ((y - target.y) / ry) ** 2 <= 1;
 }
 
@@ -99,9 +131,12 @@ export function getSaveKey(imageId, cols, rows) {
 export function validateSavedState(value, cols, rows) {
   if (!value || typeof value !== 'object' || !Array.isArray(value.pieces)) return false;
   if (value.pieces.length !== cols * rows) return false;
+  if (value.puzzleSeed !== undefined &&
+      (!Number.isInteger(value.puzzleSeed) || value.puzzleSeed < 0 || value.puzzleSeed > 4294967295)) return false;
   const valid = ['tray', 'board', 'solved'];
   return value.pieces.every((piece) =>
     piece && valid.includes(piece.state) &&
+    (piece.rotation === undefined || ROTATIONS.includes(piece.rotation)) &&
     (piece.state !== 'board' ||
       (Number.isFinite(piece.x) && Number.isFinite(piece.y) &&
         piece.x >= -BOARD_WIDTH && piece.x <= BOARD_WIDTH * 2 &&
