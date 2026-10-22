@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   DIFFICULTIES, generatePieces, shuffledIds, hashSeed, isBorderPiece,
-  canSnap, canPlace, rotatePiece, targetFor, progress, formatTime, getSaveKey, validateSavedState
+  canSnap, canPlace, rotatePiece, targetFor, progress, formatTime, getSaveKey, validateSavedState,
+  returnPieceToTray, isDoubleClickOnPiece
 } from '../logic.js';
 
 test('todas as dificuldades têm exatamente a quantidade de peças indicada', () => {
@@ -105,4 +106,29 @@ test('valida salvamentos com rotação e rejeita rotações inválidas', () => {
   assert.equal(validateSavedState({ pieces }, 4, 3), true);
   assert.equal(validateSavedState({ pieces: [{ ...pieces[0], rotation: 45 }, ...pieces.slice(1)] }, 4, 3), false);
   assert.equal(validateSavedState({ pieces: Array.from({length: 12}, () => ({ state: 'tray' })) }, 4, 3), true);
+});
+
+test('duplo clique na mesma peça, no mesmo local e dentro do intervalo', () => {
+  const first = { id: 7, x: 420, y: 130, time: 1000 };
+  assert.equal(isDoubleClickOnPiece(null, first), false);
+  assert.equal(isDoubleClickOnPiece(first, { id: 7, x: 425, y: 132, time: 1220 }), true);
+  assert.equal(isDoubleClickOnPiece(first, { id: 8, x: 425, y: 132, time: 1220 }), false);
+  assert.equal(isDoubleClickOnPiece(first, { id: 7, x: 425, y: 132, time: 1550 }), false);
+  assert.equal(isDoubleClickOnPiece(first, { id: 7, x: 480, y: 132, time: 1220 }), false);
+  assert.equal(isDoubleClickOnPiece(first, { id: 7, x: 420, y: 130, time: 900 }), false);
+});
+
+test('devolver peça solta para a bandeja mantém rotação e não altera as encaixadas', () => {
+  const p = generatePieces(8, 6, 7)[12];
+  p.state = 'board'; p.x = 320; p.y = 190; p.rotation = 270;
+  assert.equal(returnPieceToTray(p), true);
+  assert.equal(p.state, 'tray');
+  assert.equal(p.x, null);
+  assert.equal(p.y, null);
+  assert.equal(p.rotation, 270);
+  assert.equal(returnPieceToTray(p), false);
+  p.state = 'solved'; p.x = 5; p.y = 8;
+  assert.equal(returnPieceToTray(p), false);
+  assert.equal(p.state, 'solved');
+  assert.equal(p.x, 5);
 });
