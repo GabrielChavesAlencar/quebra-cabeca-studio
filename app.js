@@ -1,7 +1,7 @@
 import {
   BOARD_WIDTH as W, BOARD_HEIGHT as H, DIFFICULTIES, generatePieces,
   hashSeed, shuffledIds, isBorderPiece, canPlace, rotatePiece, targetFor,
-  progress, formatTime, getSaveKey, validateSavedState
+  progress, formatTime, getSaveKey, validateSavedState, returnPieceToTray, isDoubleClickOnPiece
 } from './logic.js';
 import { renderPieceSlots } from './slot-grid.js';
 
@@ -32,6 +32,7 @@ let loadedGame = 0;
 let lastTick = performance.now();
 let lastSave = performance.now();
 let activeDrag = null;
+let lastBoardClick = null;
 let hintTimeout = null;
 let toastTimeout = null;
 let winShown = false;
@@ -243,6 +244,7 @@ function refreshSolvedCache() {
 }
 function rotateSelected(piece = selectedId === null ? null : pieces[selectedId]) {
   if (!piece || paused || piece.state === 'solved') return;
+  lastBoardClick = null;
   selectedId = piece.id;
   rotatePiece(piece);
   piece.thumbnail = null;
@@ -314,6 +316,7 @@ function beginDrag(event, piece, from) {
   if (!image || paused || event.button !== 0 || piece.state === 'solved') return;
   event.preventDefault();
   if (activeDrag) cleanDrag();
+  if (from !== 'board') lastBoardClick = null;
   const at = boardCoordinates(event.clientX, event.clientY);
   const offsetX = from === 'board' ? at.x - piece.x : pieceWidth() / 2;
   const offsetY = from === 'board' ? at.y - piece.y : pieceHeight() / 2;
@@ -336,7 +339,32 @@ function moveDrag(event) {
     ghost.style.left = `${event.clientX}px`; ghost.style.top = `${event.clientY}px`;
   }
 }
-function cancelDrag() { cleanDrag(); redrawBoard(); }
+function cancelDrag() { lastBoardClick = null; cleanDrag(); redrawBoard(); }
+
+// Move a peça para a página correta da bandeja, mesmo com centenas de peças.
+function returnBoardPieceToTray(piece) {
+  if (!returnPieceToTray(piece)) return false;
+  startClock(); moves++;
+  selectedId = null;
+  if ((filter === 'border' && !isBorderPiece(piece)) ||
+      (filter === 'center' && isBorderPiece(piece))) {
+    filter = 'all';
+    document.querySelectorAll('.filter').forEach((button) => {
+      const active = button.dataset.filter === 'all';
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+  }
+  const visibleIds = shuffledIds(pieces.length, hashSeed(`${currentImage}/${grid().count}/shuffle`))
+    .filter((id) => pieces[id].state === 'tray' &&
+      (filter === 'all' || (filter === 'border') === isBorderPiece(pieces[id])));
+  const index = visibleIds.indexOf(piece.id);
+  if (index >= 0) trayPage = Math.floor(index / TRAY_PAGE_SIZE);
+  saveGame();
+  message('Peça devolvida à bandeja.');
+  return true;
+}
+
 function endDrag(event) {
   if (!activeDrag) return;
   const drag = activeDrag;
@@ -344,16 +372,32 @@ function endDrag(event) {
   const at = boardCoordinates(event.clientX, event.clientY);
   const didMove = drag.moved;
   cleanDrag();
+  let returned = false;
   if (didMove) {
+    lastBoardClick = null;
     if (at.inBoard) placePiece(p, at.x - drag.offsetX, at.y - drag.offsetY);
-    else if (drag.from === 'board') { p.state = 'tray'; p.x = null; p.y = null; moves++; startClock(); saveGame(); }
-  } else if (drag.from === 'tray') {
-    message('Peça selecionada. Toque no tabuleiro para colocá-la.');
+    else if (drag.from === 'board') returned = returnBoardPieceToTray(p);
+  } else if (drag.from === 'board' && p.state === 'board') {
+    const click = { id: p.id, x: event.clientX, y: event.clientY, time: performance.now() };
+    if (isDoubleClickOnPiece(lastBoardClick, click)) {
+      lastBoardClick = null;
+      returned = returnBoardPieceToTray(p);
+    } else {
+      lastBoardClick = click;
+    }
+  } else {
+    lastBoardClick = null;
+    if (drag.from === 'tray') message('Peça selecionada. Toque no tabuleiro para colocá-la.');
   }
   redrawBoard(); renderTray(); updateUI();
+  if (returned) {
+    const card = tray.querySelector(`.piece-card[data-id="${p.id}"]`);
+    card?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
 }
 function placePiece(piece, x, y) {
   if (paused || piece.state === 'solved') return;
+  lastBoardClick = null;
   startClock(); moves++;
   if (canPlace(piece, x, y, grid().cols, grid().rows)) {
     const goal = targetFor(piece, grid().cols, grid().rows);
@@ -392,6 +436,8 @@ function onBoardPointerDown(event) {
   if (selected && selected.state === 'tray') {
     placePiece(selected, where.x - pieceWidth() / 2, where.y - pieceHeight() / 2);
     redrawBoard(); renderTray(); updateUI();
+  } else {
+    lastBoardClick = null;
   }
 }
 function complete() {
@@ -461,6 +507,7 @@ async function loadGame(imageId = currentImage, chosenDifficulty = difficulty) {
     const loadedImage = await loadImage(images[imageId].source);
     if (token !== loadedGame) return;
     image = loadedImage;
+    lastBoardClick = null;
     currentImage = imageId;
     difficulty = chosenDifficulty;
     $('#difficulty').value = String(difficulty);
