@@ -4,13 +4,13 @@ Um quebra-cabeça de encaixar peças, feito para jogar **direto no navegador**, 
 
 ## Recursos
 
-- **Peças com encaixes curvos**, geradas matematicamente: as laterais das peças vizinhas se complementam.
-- **Seis níveis de dificuldade:** 12, 24, 48, 96, 150 e 300 peças.
+- **Quatro padrões de encaixes curvos**, com tamanho, profundidade e posição levemente aleatórios; as laterais das peças vizinhas se complementam.
+- **Nove níveis de dificuldade:** 12, 24, 48, 96, 150, 300, 500, 750 e 1.000 peças.
 - **Quatro ilustrações** incluídas: montanhas, praia, cidade e espaço.
-- **Suas próprias fotos** (JPG, PNG e WEBP, até 12 MB), redimensionadas para funcionar como quebra-cabeças.
+- **Suas próprias fotos** (JPG, PNG e WEBP, até 12 MB), por seleção ou arrastar e soltar; imagens ajustadas automaticamente. Fotos diferentes mantêm progresso separado.
 - **Arrastar e soltar** no PC e no celular; também é possível selecionar uma peça e tocar no tabuleiro.
-- Encaixe magnético próximo da posição correta; peças encaixadas ficam fixas e as demais podem ser reorganizadas.
-- Filtros de peças de borda, centro e todas as peças.
+- Giro de 90° pelo botão direito ou tecla R (botão para celular); só encaixa quando a peça estiver corretamente orientada. Encaixe magnético próximo da posição correta; peças encaixadas ficam fixas e as demais podem ser reorganizadas.
+- Filtros de peças de borda, centro e todas as peças; bandeja com páginas de 60 peças e zoom de 100 a 400% para puzzles grandes.
 - Imagem original, dicas, guia visual opcional e modo tela cheia.
 - Cronômetro, contagem de movimentos, progresso e celebração de vitória.
 - Salvamento automático via `localStorage`, separado por imagem e dificuldade.
@@ -38,7 +38,11 @@ npm test
 npm run check
 ```
 
-Os testes validam a geração de peças, encaixes complementares, determinismo, embaralhamento, progresso, salvamentos e proximidade dos encaixes.
+Os testes validam a geração até 1.000 peças, quatro padrões, encaixes complementares, rotação, salvamentos, determinismo, embaralhamento, progresso e alinhamento das peças.
+
+## Publicar na Vercel
+
+Importe `GabrielChavesAlencar/quebra-cabeca-studio` em https://vercel.com/new usando o preset **Other** e diretório raiz `./`. O projeto é estático e não requer comando de build. Após conectar o GitHub, novos commits em `main` podem gerar publicações automáticas.
 
 ## Publicar no GitHub Pages
 
