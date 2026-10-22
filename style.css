@@ -17,3 +17,18 @@
   .piece-card{height:84px}
   .sidebar h1{font-size:30px}
 }
+
+/* Controles de quebra-cabeças grandes: zoom, páginas e rotação. */
+.board-frame{overflow:auto;scrollbar-width:thin;scrollbar-color:#676980 #161827}
+.board-frame canvas#board{display:block;max-width:none;min-width:100%;height:auto;touch-action:none}
+.board-topline{flex-wrap:wrap}
+.board-zoom-controls{display:inline-flex;gap:7px;align-items:center;background:#121827;border:1px solid #41475a;border-radius:9px;padding:3px}
+.board-zoom-controls button,.tray-pages button{border:0;background:#343b52;color:#eac7a8;border-radius:6px;padding:5px 11px;min-height:29px;font-size:17px;cursor:pointer}
+.board-zoom-controls button:disabled,.tray-pages button:disabled{opacity:.35;cursor:not-allowed}
+.board-zoom-controls span{min-width:40px;text-align:center;font-size:11px;font-weight:800;color:#e6d4c4}
+.tray-navigation{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px;color:#aeb4c9;font-size:11px}
+.tray-pages{display:flex;align-items:center;gap:12px}
+#tray-page-label{white-space:nowrap}
+#rotation-status{color:#ebba91;font-weight:700}
+.upload-button.drag-over{border-color:#f4bc8a;background:#424058;outline:2px solid #d9a781}
+@media(max-width:600px){.board-zoom-controls{order:3;width:100%;justify-content:center}.tray-navigation{justify-content:center}.board-topline>span:last-child{margin-left:auto}}
