@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "npx --yes serve . -l 4173",
     "test": "node --test",
-    "check": "node --check logic.js && node --check app.js"
+    "check": "node --check logic.js && node --check slot-grid.js && node --check app.js"
   },
   "engines": { "node": ">=18" }
 }
