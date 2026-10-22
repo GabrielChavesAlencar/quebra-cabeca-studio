@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111423">
+  <meta name="description" content="Monte quebra-cabeças de 12 a 300 peças, use suas próprias fotos e acompanhe seu progresso.">
+  <title>Puzzle Studio — Seu quebra-cabeça online</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" type="module"></script>
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Puzzle Studio — página inicial"><span class="brand-mark">✦</span><span>puzzle<span class="brand-contrast">studio.</span></span></a>
+    <span class="topbar-tag"><span class="live-dot"></span> Seu cantinho para desacelerar</span>
+    <button id="help-button" class="header-help" type="button">? <span>Como jogar</span></button>
+  </header>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="eyebrow">SEU ATELIÊ CRIATIVO</div>
+      <h1>Uma peça <em>de cada vez.</em></h1>
+      <p class="sidebar-subtitle">Escolha uma imagem, encontre os encaixes e dê vida à sua próxima obra.</p>
+
+      <div class="section-head"><h2>Escolha sua imagem</h2><span>01 / 03</span></div>
+      <div class="gallery" id="gallery" aria-label="Galeria de quebra-cabeças">
+        <button class="gallery-item active" data-image="montanhas" type="button" aria-label="Montanhas tranquilas"><img src="assets/montanhas.svg" alt="Lago entre montanhas" draggable="false"><span>Montanhas</span></button>
+        <button class="gallery-item" data-image="praia" type="button" aria-label="Praia tropical"><img src="assets/praia.svg" alt="Praia tropical" draggable="false"><span>Paraíso</span></button>
+        <button class="gallery-item" data-image="cidade" type="button" aria-label="Cidade ao anoitecer"><img src="assets/cidade.svg" alt="Cidade ao anoitecer" draggable="false"><span>Metrópole</span></button>
+        <button class="gallery-item" data-image="espaco" type="button" aria-label="Planetas no espaço"><img src="assets/espaco.svg" alt="Planetas no espaço" draggable="false"><span>Cosmos</span></button>
+      </div>
+      <label for="image-upload" class="upload-button"><span class="upload-icon">＋</span><span><strong>Usar minha própria foto</strong><small>JPG, PNG ou WEBP • até 12 MB</small></span><span class="upload-arrow">↗</span></label>
+      <input id="image-upload" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+
+      <div class="section-head difficulty-head"><h2>Nível de desafio</h2><span>02 / 03</span></div>
+      <label for="difficulty" class="field-label">Quantidade de peças</label>
+      <div class="select-wrap"><select id="difficulty"><option value="0">Iniciante · 12 peças</option><option value="1">Tranquilo · 24 peças</option><option value="2" selected>Intermediário · 48 peças</option><option value="3">Avançado · 96 peças</option><option value="4">Especialista · 150 peças</option><option value="5">Mestre · 300 peças</option></select></div>
+      <p class="difficulty-note">Quanto mais peças, maior a aventura. Todas as dificuldades usam encaixes reais.</p>
+
+      <div class="section-head progress-head"><h2>Sua evolução</h2><span>03 / 03</span></div>
+      <div class="progress-top"><span id="progress-copy">0 de 48 peças</span><strong id="progress-percent">0%</strong></div>
+      <div class="progress-track" role="progressbar" id="progress-track" aria-label="Progresso do quebra-cabeça" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="sidebar-tip"><span>✧</span><p><strong>Dica do ateliê</strong> Comece pelas bordas para encontrar a moldura do seu quebra-cabeça.</p></div>
+    </aside>
+
+    <main class="game-panel">
+      <div class="game-heading"><div><div class="eyebrow eyebrow-accent">SUA MESA DE MONTAGEM</div><h2 id="puzzle-title">Montanhas tranquilas</h2></div><div class="stats"><div class="stat"><span>⏱ &nbsp;TEMPO</span><strong id="timer">00:00</strong></div><div class="stat"><span>↗ &nbsp;MOVIMENTOS</span><strong id="moves">0</strong></div></div></div>
+      <div class="toolbar" aria-label="Ferramentas do quebra-cabeça">
+        <button id="preview-button" class="tool-button" type="button" title="Ver a imagem original"><span>▧</span> Imagem</button>
+        <button id="hint-button" class="tool-button" type="button" title="Mostrar onde encaixar uma peça"><span>✦</span> Dica</button>
+        <button id="ghost-button" class="tool-button" type="button" aria-pressed="false" title="Mostrar imagem de fundo"><span>◉</span> Guia visual</button>
+        <button id="pause-button" class="tool-button" type="button" aria-pressed="false"><span>Ⅱ</span> Pausar</button>
+        <button id="fullscreen-button" class="tool-button" type="button" title="Expandir a mesa"><span>⛶</span> Expandir</button>
+        <button id="restart-button" class="tool-button tool-danger" type="button" title="Reiniciar quebra-cabeça"><span>↻</span> Reiniciar</button>
+      </div>
+
+      <div class="board-shell" id="board-shell">
+        <div class="board-topline"><span><span class="live-dot"></span> Área de montagem</span><span id="board-difficulty">48 peças</span></div>
+        <div class="board-frame" id="board-frame">
+          <canvas id="board" width="960" height="640" aria-label="Tabuleiro do quebra-cabeça. Arraste as peças da bandeja para o local correto."></canvas>
+          <div id="hint-spot" class="hint-spot" hidden aria-hidden="true"></div>
+          <div class="pause-overlay" id="pause-overlay" hidden><div class="pause-symbol">Ⅱ</div><h3>Um momento de pausa</h3><p>Seu progresso está seguro.</p><button type="button" id="resume-button" class="primary-button">Continuar montando →</button></div>
+        </div>
+        <div class="board-footer"><span>↗ Arraste as peças para o tabuleiro ou selecione uma peça e toque no destino.</span><span id="save-indicator">✓ Salvo automaticamente</span></div>
+      </div>
+
+      <section class="tray-section" aria-labelledby="tray-heading">
+        <div class="tray-header"><div><div class="tray-overline">BANDEJA DE PEÇAS</div><h3 id="tray-heading">Encontre o próximo encaixe <span id="remaining-count">48</span></h3></div><div class="filter-controls" role="group" aria-label="Filtro de peças"><button class="filter active" data-filter="all" type="button" aria-pressed="true">Todas</button><button class="filter" data-filter="border" type="button" aria-pressed="false">Bordas</button><button class="filter" data-filter="center" type="button" aria-pressed="false">Centro</button></div></div>
+        <div id="piece-tray" class="piece-tray" aria-label="Peças disponíveis"></div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">Feito para jogar sem pressa. <span>✦</span> Puzzle Studio · Salvo neste navegador</footer>
+  <div id="drag-ghost" class="drag-ghost" hidden aria-hidden="true"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="preview-dialog" class="dialog preview-dialog"><button class="dialog-close" data-close-dialog="preview-dialog" type="button" aria-label="Fechar">×</button><div class="eyebrow">REFERÊNCIA</div><h2>Olhe com atenção ✦</h2><p>Observe as cores e os detalhes para encontrar o lugar de cada peça.</p><img id="preview-image" src="assets/montanhas.svg" alt="Imagem completa do quebra-cabeça"><button class="secondary-button" data-close-dialog="preview-dialog" type="button">Voltar ao quebra-cabeça</button></dialog>
+  <dialog id="help-dialog" class="dialog help-dialog"><button class="dialog-close" data-close-dialog="help-dialog" type="button" aria-label="Fechar">×</button><div class="eyebrow">MANUAL RÁPIDO</div><h2>Como jogar</h2><ol><li><strong>Escolha uma imagem e dificuldade.</strong> São 12 a 300 peças, com encaixes diferentes.</li><li><strong>Arraste uma peça</strong> da bandeja e solte no tabuleiro. Ela encaixa automaticamente quando chega perto da posição correta.</li><li><strong>Corrija a posição.</strong> Você pode mover as peças que ainda não encaixaram. As encaixadas ficam fixas.</li><li><strong>Use as ferramentas.</strong> A imagem original, o guia visual e uma dica ajudam quando precisar.</li><li><strong>Continue de onde parou.</strong> O jogo salva o tempo, a posição das peças e a conclusão automaticamente no seu navegador.</li></ol><p class="help-foot">No celular, toque e arraste. Também é possível tocar numa peça e depois tocar no tabuleiro.</p><button class="primary-button" data-close-dialog="help-dialog" type="button">Vamos jogar →</button></dialog>
+  <dialog id="finish-dialog" class="dialog finish-dialog"><div class="finish-confetti">🎉</div><div class="eyebrow">OBRA-PRIMA CONCLUÍDA!</div><h2>Você encaixou tudo!</h2><p>Peça por peça, você chegou ao final. Que tal mais um desafio?</p><div class="finish-stats"><div><span>Seu tempo</span><strong id="finish-time">00:00</strong></div><div><span>Movimentos</span><strong id="finish-moves">0</strong></div><div><span>Peças</span><strong id="finish-pieces">48</strong></div></div><button id="play-again" class="primary-button" type="button">Jogar novamente ↗</button><button id="finish-close" class="finish-link" type="button">Admirar minha obra</button></dialog>
+</body>
+</html>
