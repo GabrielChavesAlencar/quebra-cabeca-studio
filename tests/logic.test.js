@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   DIFFICULTIES, generatePieces, shuffledIds, hashSeed, isBorderPiece,
-  canSnap, targetFor, progress, formatTime, getSaveKey, validateSavedState
+  canSnap, canPlace, rotatePiece, targetFor, progress, formatTime, getSaveKey, validateSavedState
 } from '../logic.js';
 
 test('todas as dificuldades têm exatamente a quantidade de peças indicada', () => {
@@ -66,4 +66,43 @@ test('não restaura autosaves corrompidos', () => {
   assert.equal(validateSavedState({pieces: []}, 4, 3), false);
   assert.equal(validateSavedState({pieces: [{state:'board',x:NaN,y:2}]}, 1, 1), false);
   assert.equal(validateSavedState({...value, pieces:[...value.pieces.slice(0,11), {state:'cheat'}]}, 4, 3), false);
+});
+
+test('grades de até 1.000 peças, com formatos variados e costuras compartilhadas', () => {
+  for (const difficulty of DIFFICULTIES) {
+    const pieces = generatePieces(difficulty.cols, difficulty.rows, 4582);
+    assert.equal(pieces.length, difficulty.count);
+    const styles = new Set();
+    for (const piece of pieces) {
+      if (piece.joints.right) {
+        styles.add(piece.joints.right.style);
+        assert.deepEqual(piece.joints.right, pieces[piece.id + 1].joints.left);
+      }
+      if (piece.joints.bottom) {
+        assert.deepEqual(piece.joints.bottom, pieces[piece.id + difficulty.cols].joints.top);
+      }
+      assert.ok([0, 90, 180, 270].includes(piece.rotation));
+    }
+    if (difficulty.count >= 96) assert.equal(styles.size, 4);
+  }
+});
+
+test('rotação em quartos de volta e encaixe apenas quando alinhada', () => {
+  const p = generatePieces(8, 6, 37)[18];
+  const { x, y } = targetFor(p, 8, 6);
+  p.rotation = 0;
+  assert.equal(canPlace(p, x, y, 8, 6), true);
+  assert.equal(rotatePiece(p), 90);
+  assert.equal(canPlace(p, x, y, 8, 6), false);
+  assert.equal(rotatePiece(p, 3), 0);
+  assert.equal(canPlace(p, x, y, 8, 6), true);
+  p.state = 'solved';
+  assert.equal(rotatePiece(p), 0);
+});
+
+test('valida salvamentos com rotação e rejeita rotações inválidas', () => {
+  const pieces = Array.from({ length: 12 }, () => ({ state: 'tray', rotation: 270 }));
+  assert.equal(validateSavedState({ pieces }, 4, 3), true);
+  assert.equal(validateSavedState({ pieces: [{ ...pieces[0], rotation: 45 }, ...pieces.slice(1)] }, 4, 3), false);
+  assert.equal(validateSavedState({ pieces: Array.from({length: 12}, () => ({ state: 'tray' })) }, 4, 3), true);
 });
