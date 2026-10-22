@@ -59,7 +59,7 @@ Importe `GabrielChavesAlencar/quebra-cabeca-studio` em https://vercel.com/new us
    ```
 
 3. Acesse **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-4. O workflow `.github/workflows/pages.yml` publicará o jogo automaticamente após commits em `main`.
+4. Para publicar pelo GitHub Pages, configure um workflow específico de Pages. O workflow atual executa apenas os testes, pois a publicação principal é feita pela Vercel.
 5. O endereço será semelhante a `https://SEU_USUARIO.github.io/quebra-cabeca-studio/`.
 
 > **Observação:** o deploy exige Pages habilitado no repositório e permissão para o GitHub Actions. Em repositórios privados, a disponibilidade do GitHub Pages depende do plano.
