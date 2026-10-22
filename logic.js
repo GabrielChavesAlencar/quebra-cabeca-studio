@@ -110,6 +110,25 @@ export function canSnap(piece, x, y, cols, rows, width = BOARD_WIDTH, height = B
   return ((x - target.x) / rx) ** 2 + ((y - target.y) / ry) ** 2 <= 1;
 }
 
+// Nunca permita devolver à bandeja uma peça que já foi encaixada.
+export function returnPieceToTray(piece) {
+  if (!piece || piece.state !== 'board') return false;
+  piece.state = 'tray';
+  piece.x = null;
+  piece.y = null;
+  return true;
+}
+
+// Detecta o duplo clique com pointerup, mesmo que pointerdown tenha preventDefault().
+export function isDoubleClickOnPiece(previous, current, interval = 400, tolerance = 18) {
+  if (!previous || !current || previous.id !== current.id) return false;
+  const elapsed = current.time - previous.time;
+  return Number.isFinite(elapsed) && elapsed >= 0 && elapsed <= interval &&
+    Number.isFinite(previous.x) && Number.isFinite(previous.y) &&
+    Number.isFinite(current.x) && Number.isFinite(current.y) &&
+    Math.hypot(current.x - previous.x, current.y - previous.y) <= tolerance;
+}
+
 export function progress(pieces) {
   const solved = pieces.filter((p) => p.state === 'solved').length;
   return { solved, total: pieces.length, percentage: pieces.length ? Math.round(solved * 100 / pieces.length) : 0 };
